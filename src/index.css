@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+:root {
+  /* Superfícies — chapadas, sem gradiente decorativo */
+  --bg-main: #080B10;
+  --bg-secondary: #0D1219;
+  --bg-card: #111821;
+  --bg-elevated: #151E29;
+  --border: #253244;
+
+  /* Texto */
+  --text-primary: #F2F5F8;
+  --text-secondary: #9CA9B8;
+  --text-muted: #687686;
+
+  /* Cor de sistema — substitui o indigo/violeta genérico.
+     Uso: elementos neutros, badges de sistema, links, foco. */
+  --accent-system: #20C9D8;
+  --accent-success: #31C48D;
+
+  /* Diferenciação de modo por cor (a mudança de maior retorno visual) */
+  --mode-passive: #20C9D8;   /* frio — "modo calmo", forense/estático */
+  --mode-active: #D99A3E;    /* quente — "modo sob pressão", ao vivo/adversarial */
+
+  /* Severidade — ÚNICO lugar do produto onde vermelho aparece.
+     Nunca usar --sev-critical fora de finding/status de risco real. */
+  --sev-low: #6B8EAD;
+  --sev-medium: #E5B33D;
+  --sev-high: #F07836;
+  --sev-critical: #F04452;
+
+  --validated: #31C48D;
+  --rejected: #C65864;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+  }
+}
+
+/* Evidência / dado verificável — SEMPRE monoespaçado.
+   Aplicar em: valores em dólar, IDs de pedido, timestamps, turn numbers,
+   citações exatas de evidência. Nunca em parágrafos explicativos longos. */
+.forensic-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Badge de severidade — cor + texto, nunca cor sozinha (acessibilidade) */
+.severity-low      { color: var(--sev-low);      border-color: var(--sev-low); }
+.severity-medium   { color: var(--sev-medium);   border-color: var(--sev-medium); }
+.severity-high     { color: var(--sev-high);     border-color: var(--sev-high); }
+.severity-critical { color: var(--sev-critical); border-color: var(--sev-critical); }
+
+/* Diferenciação de modo — aplicar na borda/accent do card de cada modo */
+.mode-passive-accent { border-color: var(--mode-passive); color: var(--mode-passive); }
+.mode-active-accent  { border-color: var(--mode-active);  color: var(--mode-active); }
+
+/* Barra de status black-box — fixa, sobrevive ao scroll */
+.blackbox-status-bar {
+  position: sticky;
+  top: 4rem;
+  z-index: 30;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Agrupamento "System" — separa infra do próprio Auditor (Firestore/History)
+   dos painéis de auditoria em si, para não parecer acesso ao Target */
+.system-group {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  opacity: 0.95;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-system);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Custom scrollbars for forensic console panels */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #394b63;
+}
+
