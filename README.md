@@ -163,7 +163,6 @@ The `ReportSynthesizerAgent` does **not** calculate the deterministic risk score
 ---
 
 ## Architecture Diagram
-
 ![WOTAN Architecture](ARCHI.png)
 
 The diagram reinforces the central architectural boundary: **WOTAN stays outside the Target Agent and evaluates it through the public interaction surface.**
