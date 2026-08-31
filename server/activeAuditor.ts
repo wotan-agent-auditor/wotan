@@ -1110,6 +1110,164 @@ const autonomousStatus =
   return { report: finalReport, events: adkEvents };
 }
 
+
+// ---------------------------------------------------------------------------
+// External Black-Box Target Adapter
+// ---------------------------------------------------------------------------
+
+export interface ActiveAuditTargetConfig {
+  mode?: 'demo' | 'external_api';
+  name?: string;
+  url?: string;
+  bearerToken?: string;
+  requestField?: string;
+  sessionField?: string;
+  responseField?: string;
+}
+
+function validateExternalTargetUrl(rawUrl: string): URL {
+  let url: URL;
+
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    throw new Error('External Target URL is invalid.');
+  }
+
+  if (url.protocol !== 'https:') {
+    throw new Error('External Target must use HTTPS.');
+  }
+
+  const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+
+  const blockedHosts = [
+    'localhost',
+    '0.0.0.0',
+    '127.0.0.1',
+    '169.254.169.254',
+    'metadata.google.internal',
+  ];
+
+  const privateIpv4 =
+    /^10\./.test(host) ||
+    /^192\.168\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+    /^127\./.test(host) ||
+    /^169\.254\./.test(host);
+
+  const privateIpv6 =
+    host === '::1' ||
+    host.startsWith('fc') ||
+    host.startsWith('fd') ||
+    host.startsWith('fe80:');
+
+  if (
+    blockedHosts.includes(host) ||
+    privateIpv4 ||
+    privateIpv6 ||
+    host.endsWith('.internal') ||
+    host.endsWith('.local')
+  ) {
+    throw new Error('External Target URL points to a blocked private/internal address.');
+  }
+
+  return url;
+}
+
+function getJsonPath(obj: any, path?: string): any {
+  if (!path?.trim()) return undefined;
+
+  return path
+    .split('.')
+    .filter(Boolean)
+    .reduce((value, key) => value?.[key], obj);
+}
+
+async function callExternalTargetAgent(
+  probeMessage: string,
+  target: ActiveAuditTargetConfig,
+  sessionId: string
+): Promise<string> {
+  if (!target.url?.trim()) {
+    throw new Error('External Target URL is required.');
+  }
+
+  const url = validateExternalTargetUrl(target.url.trim());
+
+  const requestField = target.requestField?.trim() || 'message';
+  const sessionField =
+    target.sessionField === ''
+      ? ''
+      : target.sessionField?.trim() || 'sessionId';
+
+  const requestBody: Record<string, string> = {
+    [requestField]: probeMessage,
+  };
+
+  if (sessionField) {
+    requestBody[sessionField] = sessionId;
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json, text/plain',
+  };
+
+  if (target.bearerToken?.trim()) {
+    headers.Authorization = `Bearer ${target.bearerToken.trim()}`;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(requestBody),
+      signal: controller.signal,
+    });
+
+    const raw = await response.text();
+
+    if (!response.ok) {
+      throw new Error(
+        `External Target returned HTTP ${response.status}: ${raw.substring(0, 300)}`
+      );
+    }
+
+    let parsed: any = null;
+
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      if (raw.trim()) return raw.trim();
+    }
+
+    const configuredResponse = getJsonPath(parsed, target.responseField);
+
+    const candidate =
+      configuredResponse ??
+      parsed?.response ??
+      parsed?.message ??
+      parsed?.text ??
+      parsed?.output ??
+      parsed?.content ??
+      parsed?.choices?.[0]?.message?.content ??
+      parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (typeof candidate !== 'string' || !candidate.trim()) {
+      throw new Error(
+        'External Target response did not contain a readable text field. Configure responseField.'
+      );
+    }
+
+    return candidate.trim();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Main Active Audit Session Runner (Google ADK 2.0 Orchestrator)
 // ---------------------------------------------------------------------------
@@ -1118,6 +1276,7 @@ export interface RunActiveAuditOptions {
   profile: ActiveAuditProfile;
   maxTurns?: number;
   model?: string;
+  target?: ActiveAuditTargetConfig;
   onEvent: (event: ActiveAuditStreamEvent) => void;
   shouldAbort?: () => boolean;
 }
@@ -1131,7 +1290,14 @@ export async function runActiveAuditSession(
   const profile = options.profile || 'Full Business Risk Audit';
   const maxTurns = Math.max(2, Math.min(options.maxTurns || 5, 10));
   const planBlueprint = getInitialProfileBlueprint(profile, maxTurns);
-  const targetAgentName = 'Demo Customer Service Agent (ApexRetail)';
+
+  const targetMode =
+    options.target?.mode === 'external_api' ? 'external_api' : 'demo';
+
+  const targetAgentName =
+    targetMode === 'external_api'
+      ? options.target?.name?.trim() || 'External API Target'
+      : 'Demo Customer Service Agent (ApexRetail)';
 
   const sessionId = `audit-session-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
   const userId = 'auditor-operator-1';
@@ -1318,11 +1484,23 @@ export async function runActiveAuditSession(
 
     // 2b. OBSERVE: Send Probe to Target Agent (External Black-Box Boundary)
     await sleep(250);
-    const { response: rawTargetResponse, updatedState } = getDemoTargetAgentResponse(
-      probeMessage,
-      demoState
-    );
-    demoState = updatedState;
+    let rawTargetResponse: string;
+
+    if (targetMode === 'external_api') {
+      rawTargetResponse = await callExternalTargetAgent(
+        probeMessage,
+        options.target || {},
+        sessionId
+      );
+    } else {
+      const demoResult = getDemoTargetAgentResponse(
+        probeMessage,
+        demoState
+      );
+      rawTargetResponse = demoResult.response;
+      demoState = demoResult.updatedState;
+    }
+
     previousRawTargetResponse = rawTargetResponse;
 
     // Maintain immutable forensic evidence representation in ADK state

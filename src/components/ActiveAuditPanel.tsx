@@ -122,6 +122,14 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
   const [currentStageMessage, setCurrentStageMessage] = useState<string>('Ready to initiate autonomous audit');
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
+  const [targetMode, setTargetMode] = useState<'demo' | 'external_api'>('demo');
+  const [targetName, setTargetName] = useState<string>('External Target Agent');
+  const [targetUrl, setTargetUrl] = useState<string>('');
+  const [bearerToken, setBearerToken] = useState<string>('');
+  const [requestField, setRequestField] = useState<string>('message');
+  const [sessionField, setSessionField] = useState<string>('sessionId');
+  const [responseField, setResponseField] = useState<string>('');
+
   const turnsContainerRef = useRef<HTMLDivElement | null>(null);
   const timelineContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -141,6 +149,25 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
 
   const handleStartActiveAudit = async () => {
     setError(null);
+
+    if (targetMode === 'external_api') {
+      if (!targetUrl.trim()) {
+        setError('External Target URL is required.');
+        return;
+      }
+
+      try {
+        const parsedUrl = new URL(targetUrl.trim());
+        if (parsedUrl.protocol !== 'https:') {
+          setError('External Target must use HTTPS.');
+          return;
+        }
+      } catch {
+        setError('External Target URL is invalid.');
+        return;
+      }
+    }
+
     setIsAuditing(true);
     setCurrentStageMessage('Connecting to Black-Box Active Audit Engine...');
 
@@ -152,7 +179,10 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
       currentTurn: 0,
       maxTurns,
       currentObjective: 'Formulating autonomous probe strategy...',
-      targetAgentName: 'Demo Customer Service Agent (ApexRetail)',
+      targetAgentName:
+        targetMode === 'external_api'
+          ? targetName.trim() || 'External API Target'
+          : 'Demo Customer Service Agent (ApexRetail)',
       profile: selectedProfile,
       evidenceCount: 0,
       findingsCount: 0,
@@ -171,6 +201,20 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
         body: JSON.stringify({
           profile: selectedProfile,
           maxTurns,
+          target:
+            targetMode === 'external_api'
+              ? {
+                  mode: 'external_api',
+                  name: targetName.trim() || 'External API Target',
+                  url: targetUrl.trim(),
+                  bearerToken: bearerToken.trim() || undefined,
+                  requestField: requestField.trim() || 'message',
+                  sessionField: sessionField.trim(),
+                  responseField: responseField.trim() || undefined,
+                }
+              : {
+                  mode: 'demo',
+                },
         }),
         signal: controller.signal,
       });
@@ -338,25 +382,150 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
 
         {/* Configuration Bar */}
         <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 bg-[#0D1219]/60">
-          {/* Target Info Box */}
-          <div className="lg:col-span-4 p-4 rounded-xl bg-[#080B10] border border-[#253244] space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#9CA9B8] uppercase tracking-wider">Target Agent</span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#31C48D]/15 text-[#31C48D] border border-[#31C48D]/30 font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#31C48D] animate-pulse" />
-                Demo Sandbox • Online
+          {/* Target Configuration */}
+          <div className="lg:col-span-4 p-4 rounded-xl bg-[#080B10] border border-[#253244] space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-[#9CA9B8] uppercase tracking-wider">
+                Target Agent
               </span>
+
+              <div className="flex p-1 rounded-lg bg-[#111821] border border-[#253244]">
+                <button
+                  type="button"
+                  disabled={isAuditing}
+                  onClick={() => setTargetMode('demo')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-semibold ${
+                    targetMode === 'demo'
+                      ? 'bg-[#31C48D] text-[#080B10]'
+                      : 'text-[#9CA9B8]'
+                  }`}
+                >
+                  Demo
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isAuditing}
+                  onClick={() => setTargetMode('external_api')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-semibold ${
+                    targetMode === 'external_api'
+                      ? 'bg-[#D99A3E] text-[#080B10]'
+                      : 'text-[#9CA9B8]'
+                  }`}
+                >
+                  External API
+                </button>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-bold text-[#F2F5F8]">Target Agent (ApexRetail Demo)</p>
-              <p className="text-xs text-[#9CA9B8] mt-0.5 font-sans">
-                ApexRetail Virtual Assistant (Simulated production agent with controlled policy, refund, and security vulnerabilities)
-              </p>
-            </div>
-            <div className="pt-2 border-t border-[#253244] flex items-center justify-between text-xs text-[#687686] font-mono">
-              <span>Type: Black-Box E-Commerce</span>
-              <span>Model: LLM Virtual Agent</span>
-            </div>
+
+            {targetMode === 'demo' ? (
+              <>
+                <div>
+                  <p className="text-sm font-bold text-[#F2F5F8]">
+                    Target Agent (ApexRetail Demo)
+                  </p>
+                  <p className="text-xs text-[#9CA9B8] mt-1">
+                    Controlled sandbox target for deterministic black-box demonstrations.
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-[#253244] flex items-center justify-between text-[11px] text-[#687686] font-mono">
+                  <span>Black-Box Demo</span>
+                  <span className="text-[#31C48D]">● Online</span>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-[#9CA9B8] mb-1">
+                    Target Name
+                  </label>
+                  <input
+                    type="text"
+                    value={targetName}
+                    disabled={isAuditing}
+                    onChange={(e) => setTargetName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#111821] border border-[#253244] text-xs text-[#F2F5F8]"
+                    placeholder="Customer Service Agent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-[#9CA9B8] mb-1">
+                    HTTPS API Endpoint
+                  </label>
+                  <input
+                    type="url"
+                    value={targetUrl}
+                    disabled={isAuditing}
+                    onChange={(e) => setTargetUrl(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#111821] border border-[#253244] text-xs text-[#F2F5F8] font-mono"
+                    placeholder="https://example.com/api/chat"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-[#9CA9B8] mb-1">
+                    Bearer Token — Optional
+                  </label>
+                  <input
+                    type="password"
+                    value={bearerToken}
+                    disabled={isAuditing}
+                    onChange={(e) => setBearerToken(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#111821] border border-[#253244] text-xs text-[#F2F5F8] font-mono"
+                    placeholder="Not stored in audit report"
+                    autoComplete="off"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] text-[#687686] mb-1">
+                      Request field
+                    </label>
+                    <input
+                      type="text"
+                      value={requestField}
+                      disabled={isAuditing}
+                      onChange={(e) => setRequestField(e.target.value)}
+                      className="w-full px-2 py-1.5 rounded-lg bg-[#111821] border border-[#253244] text-[11px] text-[#F2F5F8] font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-[#687686] mb-1">
+                      Session field
+                    </label>
+                    <input
+                      type="text"
+                      value={sessionField}
+                      disabled={isAuditing}
+                      onChange={(e) => setSessionField(e.target.value)}
+                      className="w-full px-2 py-1.5 rounded-lg bg-[#111821] border border-[#253244] text-[11px] text-[#F2F5F8] font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] text-[#687686] mb-1">
+                    Response JSON path — Optional
+                  </label>
+                  <input
+                    type="text"
+                    value={responseField}
+                    disabled={isAuditing}
+                    onChange={(e) => setResponseField(e.target.value)}
+                    className="w-full px-2 py-1.5 rounded-lg bg-[#111821] border border-[#253244] text-[11px] text-[#F2F5F8] font-mono"
+                    placeholder="response or data.message"
+                  />
+                </div>
+
+                <p className="text-[10px] text-[#687686] leading-relaxed">
+                  Authorized HTTPS/JSON targets only. WOTAN sends each adaptive probe through the public API surface.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Profile & Turns Controls */}

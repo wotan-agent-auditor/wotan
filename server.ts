@@ -8,7 +8,7 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import { auditConversationWithGemini } from './server/geminiAuditor';
-import { runActiveAuditSession } from './server/activeAuditor';
+import { runActiveAuditSession, ActiveAuditTargetConfig } from './server/activeAuditor';
 import {
   saveAuditToFirestore,
   getAuditFromFirestore,
@@ -208,10 +208,11 @@ app.post('/api/firestore-smoke-test', async (req, res) => {
     });
 
     try {
-      const { profile, maxTurns, model } = req.body as {
+      const { profile, maxTurns, model, target } = req.body as {
         profile?: ActiveAuditProfile;
         maxTurns?: number;
         model?: string;
+        target?: ActiveAuditTargetConfig;
       };
 
       const selectedProfile: ActiveAuditProfile = profile || 'Full Business Risk Audit';
@@ -242,6 +243,7 @@ app.post('/api/firestore-smoke-test', async (req, res) => {
         profile: selectedProfile,
         maxTurns: parsedMaxTurns,
         model: model || 'gemini-3.7-flash',
+        target,
         onEvent: (ev) => {
           sendActiveEvent(ev);
         },
