@@ -322,7 +322,7 @@ export default function App() {
                         auditMode === 'active' ? 'text-[#F2F5F8]' : 'text-[#9CA9B8]'
                       }`}
                     >
-                      Black-Box Active Audit (Autonomous QA)
+                      Black-Box Active Audit
                     </h3>
                   </div>
                 </div>
