@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Keep Firestore security restricted. Deny all direct public client access.
+    // All reads and writes are securely brokered server-side via the backend using ADC.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

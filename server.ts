@@ -9,12 +9,16 @@ import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import { auditConversationWithGemini } from './server/geminiAuditor';
 import { runActiveAuditSession } from './server/activeAuditor';
+import {
+  saveAuditToFirestore,
+  getAuditFromFirestore,
+  listAuditsFromFirestore,
+  deleteAuditFromFirestore,
+  FIRESTORE_PROJECT_ID,
+} from './server/firestore';
 import { AuditStatusEvent, ActiveAuditStreamEvent, ActiveAuditProfile } from './src/types';
 
 dotenv.config();
-
-// In-memory audit persistence store (mirrors Firestore structure)
-const auditDatabase: Map<string, any> = new Map();
 
 async function startServer() {
   const app = express();
@@ -31,7 +35,48 @@ async function startServer() {
       timestamp: new Date().toISOString(),
     });
   });
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'Agent Auditor Engine',
+    hasApiKey: Boolean(process.env.GEMINI_API_KEY),
+    timestamp: new Date().toISOString(),
+  });
+});
 
+app.post('/api/firestore-smoke-test', async (req, res) => {
+  try {
+    const report: any = {
+      id: 'wotan-cloudrun-write-test',
+      title: 'WOTAN Cloud Run Firestore Write Test',
+      created_at: new Date().toISOString(),
+      audit_mode: 'storage_test',
+      overall_risk_score: 0,
+      risk_level: 'LOW',
+      executive_summary: 'Deterministic storage-only test.',
+      findings: [],
+      dimension_scores: {},
+      final_recommendation: 'Storage validation only.'
+    };
+
+    await saveAuditToFirestore(report);
+    const saved = await getAuditFromFirestore(report.id);
+
+    res.json({
+      success: true,
+      write: true,
+      read: !!saved,
+      audit: saved
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+});
+
+// Passive Transcript Audit...
   // Passive Transcript Audit Endpoint with real-time SSE progress streaming, heartbeat & retry handling
   app.post('/api/audit', async (req, res) => {
     const isStreamRequested =
@@ -101,8 +146,10 @@ async function startServer() {
 
         if (heartbeatTimer) clearInterval(heartbeatTimer);
 
-        // Save to cache
-        auditDatabase.set(report.id, report);
+        // Save report to Firestore audits/{auditId}
+        await saveAuditToFirestore(report).catch((err) => {
+          console.error('[Firestore Write Error]:', err);
+        });
 
         sendEvent({
           type: 'complete',
@@ -116,7 +163,9 @@ async function startServer() {
       } else {
         // Standard JSON request
         const report = await auditConversationWithGemini(transcript, { domain, model });
-        auditDatabase.set(report.id, report);
+        await saveAuditToFirestore(report).catch((err) => {
+          console.error('[Firestore Write Error]:', err);
+        });
         return res.json({
           success: true,
           report,
@@ -201,8 +250,10 @@ async function startServer() {
 
       if (heartbeatTimer) clearInterval(heartbeatTimer);
 
-      // Save report in database
-      auditDatabase.set(report.id, report);
+      // Save report to Firestore audits/{auditId}
+      await saveAuditToFirestore(report).catch((err) => {
+        console.error('[Firestore Write Error]:', err);
+      });
 
       if (!res.writableEnded) {
         res.end();
@@ -224,27 +275,40 @@ async function startServer() {
     }
   });
 
-  // Get past audits
-  app.get('/api/audits', (req, res) => {
-    const list = Array.from(auditDatabase.values()).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-    res.json({ success: true, audits: list });
-  });
-
-  // Get specific audit
-  app.get('/api/audits/:id', (req, res) => {
-    const audit = auditDatabase.get(req.params.id);
-    if (!audit) {
-      return res.status(404).json({ error: 'Audit record not found' });
+  // Get past audits from Firestore
+  app.get('/api/audits', async (req, res) => {
+    try {
+      const audits = await listAuditsFromFirestore();
+      res.json({ success: true, audits, projectId: FIRESTORE_PROJECT_ID });
+    } catch (err: any) {
+      console.error('Failed to list audits from Firestore:', err);
+      res.status(500).json({ error: err.message || 'Failed to list audits from Firestore' });
     }
-    res.json({ success: true, audit });
   });
 
-  // Delete audit
-  app.delete('/api/audits/:id', (req, res) => {
-    const deleted = auditDatabase.delete(req.params.id);
-    res.json({ success: deleted });
+  // Get specific audit from Firestore
+  app.get('/api/audits/:id', async (req, res) => {
+    try {
+      const audit = await getAuditFromFirestore(req.params.id);
+      if (!audit) {
+        return res.status(404).json({ error: 'Audit record not found in Firestore' });
+      }
+      res.json({ success: true, audit, projectId: FIRESTORE_PROJECT_ID });
+    } catch (err: any) {
+      console.error('Failed to retrieve audit from Firestore:', err);
+      res.status(500).json({ error: err.message || 'Failed to retrieve audit from Firestore' });
+    }
+  });
+
+  // Delete audit from Firestore
+  app.delete('/api/audits/:id', async (req, res) => {
+    try {
+      const deleted = await deleteAuditFromFirestore(req.params.id);
+      res.json({ success: deleted });
+    } catch (err: any) {
+      console.error('Failed to delete audit from Firestore:', err);
+      res.status(500).json({ error: err.message || 'Failed to delete audit from Firestore' });
+    }
   });
 
   // Vite middleware for development

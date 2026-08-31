@@ -22,6 +22,8 @@ import {
   loadAuditsFromStorage,
   saveAuditToStorage,
   deleteAuditFromStorage,
+  deleteAuditFromFirestoreAndStorage,
+  fetchAuditsFromFirestore,
   clearAllAuditsFromStorage,
   exportReportAsJson,
   exportFindingsAsCsv,
@@ -46,10 +48,13 @@ export default function App() {
   const [isFirestoreModalOpen, setIsFirestoreModalOpen] = useState<boolean>(false);
   const [history, setHistory] = useState<AuditReport[]>([]);
 
-  // Load history on mount
+  // Load history from Firestore on mount
   useEffect(() => {
-    const saved = loadAuditsFromStorage();
-    setHistory(saved);
+    fetchAuditsFromFirestore().then((audits) => {
+      if (audits && audits.length > 0) {
+        setHistory(audits);
+      }
+    });
   }, []);
 
   // Run audit handler with SSE real-time streaming for friendly retry & fallback status
@@ -197,8 +202,8 @@ export default function App() {
     setError(null);
   };
 
-  const handleDeleteHistoricalAudit = (id: string) => {
-    const updated = deleteAuditFromStorage(id);
+  const handleDeleteHistoricalAudit = async (id: string) => {
+    const updated = await deleteAuditFromFirestoreAndStorage(id);
     setHistory(updated);
     if (activeReport?.id === id) {
       setActiveReport(null);

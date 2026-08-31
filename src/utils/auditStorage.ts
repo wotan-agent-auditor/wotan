@@ -7,6 +7,28 @@ import { AuditReport } from '../types';
 
 const STORAGE_KEY = 'agent_auditor_history_v1';
 
+/**
+ * Loads audits from Firestore via the server backend /api/audits, falling back to local storage if offline
+ */
+export async function fetchAuditsFromFirestore(): Promise<AuditReport[]> {
+  try {
+    const res = await fetch('/api/audits');
+    if (!res.ok) {
+      throw new Error(`Server returned status ${res.status}`);
+    }
+    const data = await res.json();
+    if (data.success && Array.isArray(data.audits)) {
+      // Sync local cache
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data.audits));
+      return data.audits;
+    }
+    return loadAuditsFromStorage();
+  } catch (err) {
+    console.warn('Failed to fetch audits from Firestore API, using local backup:', err);
+    return loadAuditsFromStorage();
+  }
+}
+
 export function loadAuditsFromStorage(): AuditReport[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -23,15 +45,23 @@ export function loadAuditsFromStorage(): AuditReport[] {
 export function saveAuditToStorage(report: AuditReport): AuditReport[] {
   try {
     const current = loadAuditsFromStorage();
-    // Prepend new report or update existing
     const filtered = current.filter((r) => r.id !== report.id);
-    const updated = [report, ...filtered].slice(0, 50); // Store up to 50 recent audits
+    const updated = [report, ...filtered].slice(0, 50);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     return updated;
   } catch (err) {
-    console.error('Failed to save audit to local storage:', err);
+    console.error('Failed to save audit to storage:', err);
     return [];
   }
+}
+
+export async function deleteAuditFromFirestoreAndStorage(id: string): Promise<AuditReport[]> {
+  try {
+    await fetch(`/api/audits/${id}`, { method: 'DELETE' });
+  } catch (err) {
+    console.warn('Failed to delete audit from backend Firestore:', err);
+  }
+  return deleteAuditFromStorage(id);
 }
 
 export function deleteAuditFromStorage(id: string): AuditReport[] {
