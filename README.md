@@ -10,6 +10,12 @@ It evaluates a Target Agent exclusively through the same public interaction surf
 
 ---
 
+## Live Demo
+
+https://agent-auditor-140893504278.us-east1.run.app
+
+---
+
 ## Why WOTAN
 
 AI agents can behave correctly in internal tests and still fail when exposed to real users.
@@ -79,8 +85,6 @@ EVALUATE
   ↓
 ADAPT
   ↓
-PROBE AGAIN
-  ↓
 VALIDATE
   ↓
 REPORT
@@ -118,8 +122,8 @@ WOTAN uses Google ADK 2.0 with specialized agents:
           candidate finding
                    │
                    ▼
-        AuditValidatorAgent
-         deterministic code
+        DeterministicValidator
+         application code
              │          │
         VALIDATED    REJECTED
              │
@@ -128,6 +132,8 @@ WOTAN uses Google ADK 2.0 with specialized agents:
 ```
 
 Active Audit reasoning is executed through Google ADK 2.0 using `InMemoryRunner`.
+
+`ReportSynthesizerAgent` aggregates validated findings and generates the final report. It does **not** calculate the deterministic risk score; that score is calculated by application code.
 
 ---
 
@@ -174,6 +180,10 @@ Validation includes:
 5. category and schema must be valid.
 
 Unsupported candidates are rejected.
+
+```text
+UNTRUSTED DATA IN → VALIDATED OR REJECTED OUT
+```
 
 ---
 
@@ -264,7 +274,7 @@ Deterministic Validation
  ↓
 Executive Risk Report
  ↓
-Firestore
+Optional persistence to Firestore
 ```
 
 ---
@@ -308,6 +318,15 @@ docs/technical-evidence/
 
 ---
 
+## Known Limitations
+
+- External Target mode currently supports HTTPS/JSON APIs.
+- Direct browser-chat automation is not implemented in this version.
+- Direct WhatsApp connectivity is not implemented; Passive Audit supports exported WhatsApp TXT files.
+- The included Demo Target is a controlled sandbox for reproducible testing.
+
+---
+
 ## Responsible Use
 
 WOTAN is intended for authorized behavioral evaluation of AI agents. Only test systems that you own or are authorized to evaluate.
@@ -318,6 +337,8 @@ WOTAN is intended for authorized behavioral evaluation of AI agents. Only test s
 
 > **Internal observability tells you what happened inside an agent.  
 > WOTAN tells you what an external user can actually make that agent do.**
+
+---
 
 ## Reproducible Testing Instructions
 
