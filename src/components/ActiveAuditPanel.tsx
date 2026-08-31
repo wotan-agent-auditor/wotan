@@ -767,15 +767,15 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
           {/* Live Execution Connection Bar (Persistent during audit) */}
           <div
             id="live-execution-connection-bar"
-            className="my-3 px-3 py-2 rounded-lg bg-[#080B10] border border-[#253244] flex items-center justify-between gap-2 text-[11px] font-mono shrink-0 shadow-inner"
+            className="my-3 px-3 py-2 rounded-lg bg-[#080B10] border border-[#253244] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-mono shrink-0 shadow-inner"
           >
-            <div className="flex items-center gap-2 text-[#20C9D8]">
-              <span className="w-2 h-2 rounded-full bg-[#31C48D] animate-pulse" />
-              <span className="font-semibold truncate">
+            <div className="flex items-start sm:items-center gap-2 text-[#20C9D8] min-w-0 flex-1">
+              <span className="w-2 h-2 rounded-full bg-[#31C48D] animate-pulse shrink-0 mt-1 sm:mt-0" />
+              <span className="font-semibold whitespace-normal break-words leading-relaxed">
                 CONNECTION: Public Chat/API Only • Target Internal Signals Used: 0 • Target Internals: Unknown
               </span>
             </div>
-            <span className="px-2 py-0.5 rounded bg-[#111821] text-[#9CA9B8] border border-[#253244] text-[10px] hidden sm:inline shrink-0">
+            <span className="px-2 py-0.5 rounded bg-[#111821] text-[#9CA9B8] border border-[#253244] text-[10px] shrink-0 self-start sm:self-center">
               Black-Box Isolation
             </span>
           </div>
