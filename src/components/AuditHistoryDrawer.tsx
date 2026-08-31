@@ -4,17 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import {
-  X,
-  History,
-  Trash2,
-  Calendar,
-  Layers,
-  ChevronRight,
-  ShieldAlert,
-  Search,
-  ExternalLink,
-} from 'lucide-react';
+import { X, History, Trash2, Calendar, Search } from 'lucide-react';
 import { AuditReport } from '../types';
 
 interface AuditHistoryDrawerProps {
@@ -36,53 +26,83 @@ export const AuditHistoryDrawer: React.FC<AuditHistoryDrawerProps> = ({
   onClearHistory,
   activeAuditId,
 }) => {
-  const [search, setSearch] = useState<string>('');
+  const [search, setSearch] = useState('');
 
   if (!isOpen) return null;
 
-  const filteredHistory = history.filter((item) => {
-    if (!item) return false;
+  const safeHistory = Array.isArray(history)
+    ? history.filter(Boolean)
+    : [];
 
-    const q = search.trim().toLowerCase();
+  const q = search.trim().toLowerCase();
+
+  const filteredHistory = safeHistory.filter((item) => {
     if (!q) return true;
 
-    const title = typeof item.title === 'string' ? item.title : '';
-    const riskLevel = typeof item.riskLevel === 'string' ? item.riskLevel : '';
-    const executiveSummary =
-      typeof item.executiveSummary === 'string' ? item.executiveSummary : '';
+    const title = String(item?.title ?? '');
+    const riskLevel = String(item?.riskLevel ?? '');
+    const summary = String(item?.executiveSummary ?? '');
 
     return (
       title.toLowerCase().includes(q) ||
       riskLevel.toLowerCase().includes(q) ||
-      executiveSummary.toLowerCase().includes(q)
+      summary.toLowerCase().includes(q)
     );
   });
 
+  const formatDate = (value: any) => {
+    try {
+      const date =
+        value && typeof value.toDate === 'function'
+          ? value.toDate()
+          : new Date(value);
+
+      return Number.isNaN(date.getTime())
+        ? 'Unknown date'
+        : date.toLocaleString();
+    } catch {
+      return 'Unknown date';
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+    <div
+      className="fixed inset-0"
+      style={{ zIndex: 100 }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Audit History"
+    >
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+      <button
+        type="button"
+        aria-label="Close Audit History"
         onClick={onClose}
+        className="absolute inset-0 w-full h-full bg-black/75 backdrop-blur-sm cursor-default"
       />
 
-      {/* Drawer Panel */}
-      <div className="relative w-full max-w-md bg-slate-900 border-l border-slate-800 h-full shadow-2xl flex flex-col z-10">
-        {/* Drawer Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              <History className="w-4 h-4" />
+      {/* Stable right-side panel */}
+      <section
+        className="absolute top-0 right-0 flex flex-col bg-[#0D131C] border-l border-[#253244] shadow-2xl"
+        style={{
+          zIndex: 101,
+          width: 'min(460px, 100vw)',
+          height: '100dvh',
+        }}
+      >
+        {/* Header */}
+        <header className="shrink-0 p-5 border-b border-[#253244] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#20C9D8]/10 text-[#20C9D8] border border-[#20C9D8]/30">
+              <History className="w-5 h-5" />
             </div>
+
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-white tracking-wide">Audit History</h3>
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-indigo-950 text-indigo-300 border border-indigo-500/30">
-                  Auditor Infra
-                </span>
-              </div>
+              <h2 className="text-base font-bold text-white">
+                Audit History
+              </h2>
               <p className="text-xs text-slate-400">
-                WOTAN internal storage • {history.length} saved QA record{history.length === 1 ? '' : 's'}
+                WOTAN audit records • {safeHistory.length}
               </p>
             </div>
           </div>
@@ -90,145 +110,133 @@ export const AuditHistoryDrawer: React.FC<AuditHistoryDrawerProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
-        </div>
+        </header>
 
-        {/* Search bar */}
-        <div className="p-4 border-b border-slate-800 bg-slate-950/40">
+        {/* Search */}
+        <div className="shrink-0 p-4 border-b border-[#253244]">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search previous audits..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full pl-9 pr-4 py-2.5 bg-[#080B10] border border-[#253244] rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#20C9D8]"
             />
           </div>
         </div>
 
-        {/* History List */}
+        {/* Records */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {filteredHistory.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-xs">
-              <History className="w-8 h-8 text-slate-600 mx-auto mb-2 opacity-50" />
-              <p>No audit sessions found.</p>
+            <div className="py-16 text-center">
+              <History className="w-9 h-9 mx-auto mb-3 text-slate-600" />
+              <p className="text-sm text-slate-400">
+                No audit records found.
+              </p>
             </div>
           ) : (
-            filteredHistory.map((item) => {
-              const riskScore = Number.isFinite(Number(item.overallRiskScore))
+            filteredHistory.map((item, index) => {
+              const score = Number.isFinite(Number(item?.overallRiskScore))
                 ? Number(item.overallRiskScore)
                 : 0;
 
-              const findings = Array.isArray(item.findings) ? item.findings : [];
-              const criticalCount = Number(item.severityCounts?.critical ?? 0);
+              const findings = Array.isArray(item?.findings)
+                ? item.findings
+                : [];
+
+              const critical = Number(
+                item?.severityCounts?.critical ?? 0
+              );
 
               const title =
-                typeof item.title === 'string' && item.title.trim()
+                typeof item?.title === 'string' && item.title.trim()
                   ? item.title
-                  : 'Untitled audit';
+                  : `Audit ${index + 1}`;
 
-              const created = item.createdAt ? new Date(item.createdAt) : null;
-              const dateStr =
-                created && !Number.isNaN(created.getTime())
-                  ? created.toLocaleString(undefined, {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
-                  : 'Unknown date';
-
-              const isActive = item.id === activeAuditId;
+              const id = String(item?.id ?? `audit-${index}`);
+              const active = id === activeAuditId;
 
               return (
-                <div
-                  key={item.id}
-                  className={`p-4 rounded-xl border transition-all relative group cursor-pointer ${
-                    isActive
-                      ? 'bg-indigo-950/40 border-indigo-500/60 ring-1 ring-indigo-500/30'
-                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-950'
-                  }`}
+                <article
+                  key={id}
                   onClick={() => {
                     onSelectAudit(item);
                     onClose();
                   }}
+                  className={`p-4 rounded-xl border cursor-pointer transition-colors ${
+                    active
+                      ? 'border-[#20C9D8] bg-[#20C9D8]/10'
+                      : 'border-[#253244] bg-[#080B10] hover:border-[#3B4C61]'
+                  }`}
                 >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-semibold text-white truncate">
                         {title}
-                      </h4>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
-                        <Calendar className="w-3 h-3 text-slate-500" />
-                        <span>{dateStr}</span>
+                      </h3>
+
+                      <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(item?.createdAt)}
                       </div>
                     </div>
 
-                    {/* Risk Score Pill */}
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold border shrink-0 ${
-                        riskScore >= 75
-                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                          : riskScore >= 50
-                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                          : riskScore >= 25
-                          ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
-                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                      }`}
-                    >
-                      {riskScore} Score
+                    <span className="shrink-0 px-2 py-1 rounded-md border border-[#253244] bg-[#111821] text-xs font-mono text-white">
+                      {score}/100
                     </span>
                   </div>
 
-                  {/* Findings breakdown */}
-                  <div className="flex items-center justify-between text-xs text-slate-400 mt-3 pt-2.5 border-t border-slate-800/80">
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-slate-300">
-                        {findings.length} findings
-                      </span>
-                      {criticalCount > 0 && (
-                        <span className="text-rose-400 font-bold font-mono">
-                          {criticalCount} Critical
+                  <div className="mt-3 pt-3 border-t border-[#253244] flex items-center justify-between">
+                    <div className="flex gap-3 text-[11px] text-slate-400">
+                      <span>{findings.length} findings</span>
+                      {critical > 0 && (
+                        <span className="text-rose-400 font-semibold">
+                          {critical} Critical
                         </span>
                       )}
                     </div>
 
                     <button
                       type="button"
+                      title="Delete audit"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDeleteAudit(item.id);
+                        if (item?.id) onDeleteAudit(String(item.id));
                       }}
-                      className="p-1 rounded text-slate-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Delete this record"
+                      className="p-1.5 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-500/10"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                </div>
+                </article>
               );
             })
           )}
         </div>
 
-        {/* Drawer Footer */}
-        {history.length > 0 && (
-          <div className="p-4 border-t border-slate-800 bg-slate-950/40 flex items-center justify-between">
+        {/* Footer */}
+        {safeHistory.length > 0 && (
+          <footer className="shrink-0 p-4 border-t border-[#253244] flex justify-between items-center">
+            <span className="text-[11px] text-slate-500">
+              WOTAN Audit Storage
+            </span>
+
             <button
               type="button"
               onClick={onClearHistory}
-              className="text-xs text-rose-400 hover:text-rose-300 font-medium transition-colors"
+              className="text-xs text-rose-400 hover:text-rose-300"
             >
               Clear All History
             </button>
-            <span className="text-[11px] text-slate-500">Auto-saved locally</span>
-          </div>
+          </footer>
         )}
-      </div>
+      </section>
     </div>
   );
 };
