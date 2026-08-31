@@ -407,6 +407,7 @@ docs/technical-evidence/
 
 ---
 
+
 ## Local Setup / Spin-up Instructions
 
 ### Prerequisites
@@ -463,8 +464,6 @@ npm start
 
 ### 7. Optional validation
 
-Run the TypeScript validation command:
-
 ```bash
 npm run lint
 ```
@@ -473,23 +472,25 @@ npm run lint
 
 ## Reproducible Testing Instructions
 
-For the fastest reproducible evaluation without local setup, use the hosted deployment:
+1. Open the hosted WOTAN application:
 
-https://agent-auditor-140893504278.us-east1.run.app
+   https://agent-auditor-140893504278.us-east1.run.app
 
-Then:
+2. Select **Black-Box Active Audit**.
 
-1. Select **Black-Box Active Audit**.
-2. Keep **Demo** selected as the Target Agent.
-3. Select **Full Business Risk Audit**.
-4. Start the audit.
-5. Observe the seven-stage workflow:
+3. Keep **Demo** selected as the Target Agent.
 
-```text
-PLAN → PROBE → OBSERVE → EVALUATE → ADAPT → VALIDATE → REPORT
-```
+4. Select **Full Business Risk Audit**.
 
-6. Review adaptive probing, validated/rejected findings, and the deterministic risk score.
+5. Start the audit.
+
+6. WOTAN will autonomously execute:
+
+   ```text
+   PLAN → PROBE → OBSERVE → EVALUATE → ADAPT → VALIDATE → REPORT
+   ```
+
+7. Review the validated findings and deterministic risk score in the final report.
 
 The Demo Target is a controlled sandbox designed for reproducible behavioral testing.
 
@@ -507,6 +508,7 @@ WOTAN requires no Target-side system prompt, source code, logs, traces, telemetr
 - External API behavior depends on the authentication, request schema, and response schema exposed by the Target service.
 
 ---
+
 
 ## Disclosure
 
