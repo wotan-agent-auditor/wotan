@@ -124,14 +124,14 @@ service cloud.firestore {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-white tracking-wide">
-                  Agent Auditor Infrastructure — Firestore Schema
+                  WOTAN Infrastructure — Firestore Schema
                 </h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                   Auditor Storage
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Agent Auditor's own audit database schema and security rules (Independent of Target Agent internals)
+                WOTAN's own audit database schema and security rules (Independent of Target Agent internals)
               </p>
             </div>
           </div>

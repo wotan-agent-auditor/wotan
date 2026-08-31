@@ -274,19 +274,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Selection status indicator pill */}
-                <div className="shrink-0">
-                  {auditMode === 'passive' ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#20C9D8]/15 text-[#20C9D8] border border-[#20C9D8]/40">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#20C9D8]" />
-                      Selected
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#151E29] text-[#9CA9B8] border border-[#253244] group-hover:border-[#20C9D8]/30">
-                      Select
-                    </span>
-                  )}
-                </div>
               </div>
 
               {/* Description placed directly underneath */}
@@ -326,7 +313,7 @@ export default function App() {
                       <span className="text-[10px] font-mono uppercase tracking-wider text-[#D99A3E] font-bold">
                         Black-Box Active Audit
                       </span>
-                      <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-[#D99A3E]/15 text-[#D99A3E] border border-[#D99A3E]/40">
+                      <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-[#20C9D8]/15 text-[#20C9D8] border border-[#20C9D8]/40">
                         Autonomous QA
                       </span>
                     </div>
@@ -340,19 +327,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Selection status indicator pill */}
-                <div className="shrink-0">
-                  {auditMode === 'active' ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#D99A3E]/15 text-[#D99A3E] border border-[#D99A3E]/40">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#D99A3E]" />
-                      Selected
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#151E29] text-[#9CA9B8] border border-[#253244] group-hover:border-[#D99A3E]/30">
-                      Select
-                    </span>
-                  )}
-                </div>
               </div>
 
               {/* Compact Access Statement */}
@@ -514,7 +488,7 @@ export default function App() {
       <footer className="border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p>
-            Agent Auditor &copy; {new Date().getFullYear()} — Enterprise AI Quality Assurance & Autonomous Risk Engine
+            WOTAN &copy; {new Date().getFullYear()} — Enterprise AI Quality Assurance & Autonomous Risk Engine
           </p>
           <div className="flex items-center gap-4 text-slate-400">
             <span>Powered by Gemini 3.7 Flash</span>

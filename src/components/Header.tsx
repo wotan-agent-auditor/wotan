@@ -37,17 +37,17 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-base sm:text-lg font-bold tracking-tight text-[#F2F5F8] font-sans">
-                AGENT AUDITOR
+                WOTAN
               </h1>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold uppercase font-mono tracking-wider bg-[#20C9D8]/15 text-[#20C9D8] border border-[#20C9D8]/40">
                 BLACK-BOX
               </span>
               <span className="text-[11px] text-[#9CA9B8] font-medium hidden md:inline border-l border-[#253244] pl-2">
-                AI Behavioral Assurance
+                Behavioral Assurance
               </span>
             </div>
             <p className="text-xs text-[#9CA9B8] font-normal hidden sm:block">
-              Black-Box Behavioral Auditor — No Target-Side Logs, Traces, or Internal Access Required.
+              Black-Box Behavioral Assurance for AI Agents — No Target-Side Logs, Traces, or Internal Access Required.
             </p>
           </div>
         </div>
@@ -67,17 +67,17 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Agent Auditor Infrastructure Grouping */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0D1219] border border-[#253244]" title="Agent Auditor's Own Storage & Audit Records">
+          {/* WOTAN Infrastructure Grouping */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0D1219] border border-[#253244]" title="WOTAN's Own Storage & Audit Records">
             <span className="text-[10px] uppercase font-mono text-[#687686] px-2 font-semibold hidden lg:inline">
-              AGENT AUDITOR INFRASTRUCTURE:
+              WOTAN INFRASTRUCTURE:
             </span>
 
             <button
               id="header-history-btn"
               onClick={onOpenHistory}
               className="relative inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#9CA9B8] hover:text-[#F2F5F8] bg-[#111821] hover:bg-[#151E29] border border-[#253244] transition-colors"
-              title="View Agent Auditor past audit records"
+              title="View WOTAN past audit records"
             >
               <History className="w-3.5 h-3.5 text-[#20C9D8]" />
               <span>Audit History</span>
@@ -92,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({
               id="header-firestore-btn"
               onClick={onOpenFirestoreModal}
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#31C48D] hover:text-[#31C48D]/90 bg-[#111821] hover:bg-[#151E29] border border-[#253244] transition-colors"
-              title="Inspect Agent Auditor storage architecture"
+              title="Inspect WOTAN storage architecture"
             >
               <Database className="w-3.5 h-3.5 text-[#31C48D]" />
               <span className="hidden sm:inline">Audit Storage</span>

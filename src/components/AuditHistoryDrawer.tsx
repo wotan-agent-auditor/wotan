@@ -75,7 +75,7 @@ export const AuditHistoryDrawer: React.FC<AuditHistoryDrawerProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Agent Auditor internal storage • {history.length} saved QA record{history.length === 1 ? '' : 's'}
+                WOTAN internal storage • {history.length} saved QA record{history.length === 1 ? '' : 's'}
               </p>
             </div>
           </div>

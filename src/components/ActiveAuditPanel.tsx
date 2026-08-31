@@ -336,12 +336,12 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold text-[#F2F5F8] tracking-wide">Black-Box Active Audit</h2>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#D99A3E]/15 text-[#D99A3E] border border-[#D99A3E]/40">
-                  <Sparkles className="w-3 h-3 text-[#D99A3E]" /> Google ADK Orchestrated
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#20C9D8]/15 text-[#20C9D8] border border-[#20C9D8]/40">
+                  <Sparkles className="w-3 h-3 text-[#20C9D8]" /> Google ADK 2.0 Orchestrated
                 </span>
               </div>
               <p className="text-xs text-[#9CA9B8] mt-0.5">
-                Real Google ADK multi-agent orchestrator executing PLAN → PROBE → OBSERVE → EVALUATE → ADAPT → VALIDATE → REPORT
+                Multi-agent pipeline: PLAN → PROBE → OBSERVE → EVALUATE → ADAPT → VALIDATE → REPORT
               </p>
             </div>
           </div>
@@ -350,35 +350,6 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#080B10] border border-[#31C48D]/40 text-xs text-[#31C48D]">
             <Shield className="w-3.5 h-3.5 text-[#31C48D]" />
             <span className="font-mono text-[11px]">Security Isolation: UNTRUSTED DATA Boundary Active</span>
-          </div>
-        </div>
-
-        {/* Compact Access Statement Bar */}
-        <div className="px-6 py-3 bg-[#080B10] border-b border-[#253244] flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-md bg-[#D99A3E]/15 text-[#D99A3E] border border-[#D99A3E]/30 font-mono font-semibold text-[11px]">
-              Access: Public interaction surface only
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-mono">
-            <span className="text-[#31C48D] font-semibold flex items-center gap-1">
-              ✓ Public Chat / API
-            </span>
-            <span className="text-[#687686] flex items-center gap-1">
-              ✕ Target System Prompt
-            </span>
-            <span className="text-[#687686] flex items-center gap-1">
-              ✕ Target Logs / Traces
-            </span>
-            <span className="text-[#687686] flex items-center gap-1">
-              ✕ Target Telemetry
-            </span>
-            <span className="text-[#687686] flex items-center gap-1">
-              ✕ Target Source Code
-            </span>
-            <span className="text-[#687686] flex items-center gap-1">
-              ✕ Target Instrumentation
-            </span>
           </div>
         </div>
 
@@ -788,7 +759,7 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
               </h3>
             </div>
             <div className="flex items-center gap-2 text-[10px] font-mono text-[#9CA9B8]">
-              <span className="inline-block w-2 h-2 rounded-full bg-[#D99A3E]" /> Agent Auditor
+              <span className="inline-block w-2 h-2 rounded-full bg-[#D99A3E]" /> WOTAN
               <span className="inline-block w-2 h-2 rounded-full bg-[#20C9D8] ml-2" /> Target Agent
             </div>
           </div>
@@ -819,7 +790,7 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
                 <div>
                   <p className="text-sm font-semibold text-[#9CA9B8]">No active conversation turns yet</p>
                   <p className="text-xs text-[#687686] mt-1 max-w-md">
-                    When you launch the audit, Agent Auditor will formulate dynamic customer prompts, interrogate the demo target agent, evaluate responses, and capture exact evidence.
+                    When you launch the audit, WOTAN will formulate dynamic customer prompts, interrogate the demo target agent, evaluate responses, and capture exact evidence.
                   </p>
                 </div>
               </div>
@@ -847,12 +818,12 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
                       <span className="font-mono text-[10px] text-[#687686]">{turn.timestamp}</span>
                     </div>
 
-                    {/* Agent Auditor Probe */}
+                    {/* WOTAN Probe */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#D99A3E]">
                           <Crosshair className="w-3.5 h-3.5 text-[#D99A3E]" />
-                          <span>Agent Auditor (Autonomous Customer Probe)</span>
+                          <span>WOTAN (Autonomous Customer Probe)</span>
                         </div>
                         {!isInitial && (
                           <span className="text-[10px] font-mono text-[#D99A3E] bg-[#D99A3E]/10 px-2 py-0.5 rounded border border-[#D99A3E]/30">
