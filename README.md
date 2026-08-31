@@ -318,3 +318,26 @@ WOTAN is intended for authorized behavioral evaluation of AI agents. Only test s
 
 > **Internal observability tells you what happened inside an agent.  
 > WOTAN tells you what an external user can actually make that agent do.**
+
+## Reproducible Testing Instructions
+
+1. Open the hosted WOTAN application:
+   https://agent-auditor-140893504278.us-east1.run.app
+
+2. Select **Black-Box Active Audit**.
+
+3. Keep **Demo** selected as the Target Agent.
+
+4. Select **Full Business Risk Audit**.
+
+5. Start the audit.
+
+6. WOTAN will autonomously execute:
+
+   PLAN → PROBE → OBSERVE → EVALUATE → ADAPT → VALIDATE → REPORT
+
+7. Review the validated findings and deterministic risk score in the final report.
+
+The Demo Target is a controlled sandbox designed for reproducible behavioral testing.
+
+WOTAN requires no Target-side system prompt, source code, logs, traces, telemetry, database access, tools, or instrumentation.
