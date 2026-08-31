@@ -1,5 +1,5 @@
 {
-  "name": "Agent Auditor",
+  "name": "WOTAN",
   "description": "Black-Box Behavioral Auditor for AI agents — No Target-Side Logs, Traces, or Internal Access Required.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

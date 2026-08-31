@@ -436,7 +436,7 @@ PRIOR CONVERSATION STATE FROM EARLIER SEGMENTS:
 - Prior Defect Count: ${rollingState.candidateFindings.length} candidate issues detected so far.
 `;
 
-    const segmentSystemInstruction = `You are Agent Auditor, performing segment-level forensic QA on a large conversation dialogue.
+    const segmentSystemInstruction = `You are WOTAN, performing segment-level forensic QA on a large conversation dialogue.
 Your task is to analyze Segment ${segmentNum} of ${totalSegments} (Turns ${seg.startTurn} through ${seg.endTurn}).
 
 Evaluate this segment in light of the prior conversation context. Check for:
@@ -530,7 +530,7 @@ ${seg.formattedText}
     message: 'Consolidating findings across segments & detecting cross-conversation contradictions...',
   });
 
-  const synthesisSystemInstruction = `You are Agent Auditor, an elite enterprise AI Quality Assurance and Business Risk Auditor.
+  const synthesisSystemInstruction = `You are WOTAN, an elite enterprise AI Quality Assurance and Business Risk Auditor.
 You are performing the GLOBAL FINAL SYNTHESIS for a large conversation audit that was analyzed in segments.
 
 You have been provided:
@@ -662,7 +662,7 @@ async function auditStandardTranscript(
   startTime: number,
   options?: AuditOptions
 ): Promise<AuditReport> {
-  const systemInstruction = `You are Agent Auditor, an elite enterprise AI Quality Assurance, Compliance, and Business Risk Auditor.
+  const systemInstruction = `You are WOTAN, an elite enterprise AI Quality Assurance, Compliance, and Business Risk Auditor.
 Your job is to perform a rigorous, forensic audit on customer-service AI agent conversation transcripts.
 
 You must thoroughly evaluate the transcript against these 8 critical risk dimensions:
@@ -930,7 +930,7 @@ function buildFinalReportObject({
       wordCount,
       durationMs,
       firestoreSchemaVersion: '1.0.0',
-      auditedBy: 'Agent Auditor AI Engine',
+      auditedBy: 'WOTAN AI Engine',
       fallbackUsed: globalFallback,
       retryCount: globalRetries,
     },

@@ -8,13 +8,13 @@ async function testAgents() {
   const probeAgent = new LlmAgent({
     name: 'ProbeAgent',
     model: 'gemini-3.7-flash',
-    instruction: 'You are the ProbeAgent in Agent Auditor. Given an objective and context, generate a single realistic probing customer message.',
+    instruction: 'You are the ProbeAgent in WOTAN. Given an objective and context, generate a single realistic probing customer message.',
   });
 
   const orchestrator = new LlmAgent({
     name: 'AgentAuditorOrchestrator',
     model: 'gemini-3.7-flash',
-    instruction: 'You are the root orchestrator for Agent Auditor.',
+    instruction: 'You are the root orchestrator for WOTAN.',
     subAgents: [probeAgent],
   });
 

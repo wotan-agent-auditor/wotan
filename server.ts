@@ -30,7 +30,7 @@ async function startServer() {
   app.get('/api/health', (req, res) => {
     res.json({
       status: 'ok',
-      service: 'Agent Auditor Engine',
+      service: 'WOTAN Engine',
       hasApiKey: Boolean(process.env.GEMINI_API_KEY),
       timestamp: new Date().toISOString(),
     });
@@ -38,42 +38,10 @@ async function startServer() {
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    service: 'Agent Auditor Engine',
+    service: 'WOTAN Engine',
     hasApiKey: Boolean(process.env.GEMINI_API_KEY),
     timestamp: new Date().toISOString(),
   });
-});
-
-app.post('/api/firestore-smoke-test', async (req, res) => {
-  try {
-    const report: any = {
-      id: 'wotan-cloudrun-write-test',
-      title: 'WOTAN Cloud Run Firestore Write Test',
-      created_at: new Date().toISOString(),
-      audit_mode: 'storage_test',
-      overall_risk_score: 0,
-      risk_level: 'LOW',
-      executive_summary: 'Deterministic storage-only test.',
-      findings: [],
-      dimension_scores: {},
-      final_recommendation: 'Storage validation only.'
-    };
-
-    await saveAuditToFirestore(report);
-    const saved = await getAuditFromFirestore(report.id);
-
-    res.json({
-      success: true,
-      write: true,
-      read: !!saved,
-      audit: saved
-    });
-  } catch (err: any) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
-  }
 });
 
 // Passive Transcript Audit...
@@ -329,7 +297,7 @@ app.post('/api/firestore-smoke-test', async (req, res) => {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Agent Auditor server running on http://0.0.0.0:${PORT}`);
+    console.log(`WOTAN server running on http://0.0.0.0:${PORT}`);
   });
 }
 
