@@ -1123,6 +1123,7 @@ export interface ActiveAuditTargetConfig {
   requestField?: string;
   sessionField?: string;
   responseField?: string;
+  model?: string;
 }
 
 function validateExternalTargetUrl(rawUrl: string): URL {
@@ -1203,6 +1204,10 @@ async function callExternalTargetAgent(
   const requestBody: Record<string, string> = {
     [requestField]: probeMessage,
   };
+
+  if (target.model?.trim()) {
+    requestBody.model = target.model.trim();
+  }
 
   if (sessionField) {
     requestBody[sessionField] = sessionId;

@@ -129,6 +129,7 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
   const [requestField, setRequestField] = useState<string>('message');
   const [sessionField, setSessionField] = useState<string>('sessionId');
   const [responseField, setResponseField] = useState<string>('');
+  const [targetModel, setTargetModel] = useState<string>('');
 
   const turnsContainerRef = useRef<HTMLDivElement | null>(null);
   const timelineContainerRef = useRef<HTMLDivElement | null>(null);
@@ -211,6 +212,7 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
                   requestField: requestField.trim() || 'message',
                   sessionField: sessionField.trim(),
                   responseField: responseField.trim() || undefined,
+                  model: targetModel.trim() || undefined,
                 }
               : {
                   mode: 'demo',
@@ -505,6 +507,20 @@ export const ActiveAuditPanel: React.FC<ActiveAuditPanelProps> = ({
                       className="w-full px-2 py-1.5 rounded-lg bg-[#111821] border border-[#253244] text-[11px] text-[#F2F5F8] font-mono"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-[#9CA9B8] mb-1">
+                    Model — Optional
+                  </label>
+                  <input
+                    type="text"
+                    value={targetModel}
+                    disabled={isAuditing}
+                    onChange={(e) => setTargetModel(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#111821] border border-[#253244] text-xs text-[#F2F5F8] font-mono"
+                    placeholder="qwen3.7-plus"
+                  />
                 </div>
 
                 <div>
