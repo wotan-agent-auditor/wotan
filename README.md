@@ -163,7 +163,8 @@ The `ReportSynthesizerAgent` does **not** calculate the deterministic risk score
 ---
 
 ## Architecture Diagram
-![WOTAN Architecture](wotan-architecture.png)
+
+![WOTAN Architecture](ARCHI.png)
 
 The diagram reinforces the central architectural boundary: **WOTAN stays outside the Target Agent and evaluates it through the public interaction surface.**
 
@@ -406,27 +407,89 @@ docs/technical-evidence/
 
 ---
 
+## Local Setup / Spin-up Instructions
+
+### Prerequisites
+
+- Node.js with npm
+- A valid Gemini API key
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/wotan-agent-auditor/wotan.git
+cd wotan
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure environment variables
+
+Create a local `.env` file from the provided example:
+
+```bash
+cp .env.example .env
+```
+
+Set your Gemini API key:
+
+```env
+GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+```
+
+`APP_URL` is automatically injected by Google AI Studio / Cloud Run in the hosted deployment. Configure it only if your local environment requires an explicit application URL.
+
+### 4. Run locally
+
+```bash
+npm run dev
+```
+
+### 5. Production build
+
+```bash
+npm run build
+```
+
+### 6. Start the production build
+
+```bash
+npm start
+```
+
+### 7. Optional validation
+
+Run the TypeScript validation command:
+
+```bash
+npm run lint
+```
+
+---
+
 ## Reproducible Testing Instructions
 
-1. Open the hosted WOTAN application:
+For the fastest reproducible evaluation without local setup, use the hosted deployment:
 
-   https://agent-auditor-140893504278.us-east1.run.app
+https://agent-auditor-140893504278.us-east1.run.app
 
-2. Select **Black-Box Active Audit**.
+Then:
 
-3. Keep **Demo** selected as the Target Agent.
+1. Select **Black-Box Active Audit**.
+2. Keep **Demo** selected as the Target Agent.
+3. Select **Full Business Risk Audit**.
+4. Start the audit.
+5. Observe the seven-stage workflow:
 
-4. Select **Full Business Risk Audit**.
+```text
+PLAN → PROBE → OBSERVE → EVALUATE → ADAPT → VALIDATE → REPORT
+```
 
-5. Start the audit.
-
-6. WOTAN will autonomously execute:
-
-   ```text
-   PLAN → PROBE → OBSERVE → EVALUATE → ADAPT → VALIDATE → REPORT
-   ```
-
-7. Review the validated findings and deterministic risk score in the final report.
+6. Review adaptive probing, validated/rejected findings, and the deterministic risk score.
 
 The Demo Target is a controlled sandbox designed for reproducible behavioral testing.
 
@@ -445,6 +508,28 @@ WOTAN requires no Target-side system prompt, source code, logs, traces, telemetr
 
 ---
 
+## Disclosure
+
+The **WOTAN application and hackathon implementation were created during the hackathon submission period**.
+
+The behavioral-auditing methodology was informed by prior real-world black-box evaluations of customer-facing AI agents. Those earlier cases and methodology predate the WOTAN hackathon implementation and are included only as supporting validation and design context.
+
+The prior case-study material is documented under:
+
+```text
+docs/case-studies/
+```
+
+Technical evidence generated during development of the WOTAN implementation is documented under:
+
+```text
+docs/technical-evidence/
+```
+
+WOTAN's application code, Google ADK orchestration, deterministic validation pipeline, risk-scoring implementation, Cloud Run deployment, Firestore integration, Active Audit workflow, and project interface constitute the hackathon implementation.
+
+---
+
 ## Responsible Use
 
 WOTAN is intended for authorized behavioral evaluation of AI agents, including customer-service agents, sales agents, support agents, enterprise assistants, transactional agents, and public AI interfaces.
@@ -454,5 +539,6 @@ Only test systems that you own or are authorized to evaluate.
 ---
 
 ## Core Thesis
+
 > **Internal observability tells you what happened inside an agent.  
 > WOTAN tells you what an external user can actually make that agent do.**
