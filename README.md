@@ -455,6 +455,6 @@ Only test systems that you own or are authorized to evaluate.
 ---
 
 ## Core Thesis
-
+![WOTAN Architecture](wotan-architecture.png)
 > **Internal observability tells you what happened inside an agent.  
 > WOTAN tells you what an external user can actually make that agent do.**
