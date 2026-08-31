@@ -2,7 +2,7 @@
 
 **Black-Box Behavioral Assurance for AI Agents**
 
-WOTAN is an autonomous black-box auditor for AI agents.
+WOTAN is an autonomous black-box behavioral auditor for AI agents.
 
 It evaluates a Target Agent exclusively through the same public interaction surface available to a normal external user — such as a public chat or HTTPS/JSON API — without requiring access to the target's system prompt, source code, internal logs, traces, telemetry, database, tools, or instrumentation.
 
@@ -39,19 +39,34 @@ The core question is:
 
 ## The Key Difference: WOTAN vs. Observability-Based Auditing
 
-WOTAN operates from **outside the Target Agent**.
+WOTAN operates from **outside the Target Agent**, through the same public interaction surface available to a normal external user.
 
-This is the key distinction from observability-driven approaches such as Cassandra, which rely on internal execution visibility such as traces, telemetry, or instrumented agent data to diagnose behavior and root causes.
+This is the key distinction from observability-driven approaches such as Cassandra.
 
-WOTAN does not need that visibility.
+Observability-oriented systems can use internal execution visibility — such as traces, telemetry, instrumented runtime data, or other Target-side information — to diagnose how and why an agent behaved in a certain way.
+
+WOTAN does not require that visibility.
+
+It evaluates only what is externally observable through the Target Agent's **public chat or public HTTPS/JSON API**.
+
+WOTAN requires no access to the Target Agent's:
+
+- system prompt;
+- source code;
+- internal logs;
+- traces;
+- telemetry;
+- database;
+- tools;
+- instrumentation.
 
 | Observability-based auditing | WOTAN |
 |---|---|
-| Uses traces, telemetry, or instrumented execution data | Uses only the public interaction surface |
-| Requires internal operational visibility | Requires no Target-side internal access |
-| Helps explain what happened inside the agent | Tests what an external user can make the agent do |
-| Best suited to systems you operate and instrument | Can evaluate targets available only through public chat/API |
-| Root-cause/observability perspective | External behavioral assurance perspective |
+| Observes internal execution | Observes public behavior |
+| Uses traces, telemetry, or instrumentation | Uses public chat/API responses |
+| Requires Target-side visibility | Requires no Target-side internal access |
+| Helps explain why an agent failed | Tests what an external user can make the agent do |
+| Operates inside the observability boundary | Operates outside the Target Agent boundary |
 
 These approaches are complementary.
 
@@ -63,6 +78,7 @@ Tracing / Telemetry / Observability / Root Cause
                 ↓
 OUTSIDE THE TARGET
 WOTAN — Black-Box Behavioral Assurance
+Public Chat / Public API
 ```
 
 > **Internal observability tells you what happened inside an agent.  
@@ -72,7 +88,7 @@ WOTAN — Black-Box Behavioral Assurance
 
 ## Autonomous Audit Workflow
 
-WOTAN performs an adaptive multi-turn audit:
+WOTAN performs an adaptive multi-turn audit using one canonical seven-stage workflow:
 
 ```text
 PLAN
@@ -90,7 +106,7 @@ VALIDATE
 REPORT
 ```
 
-The next probe can be conditioned on the Target Agent's previous response.
+The next probe can be conditioned on the Target Agent's previous response. The adaptive loop can generate another probe when needed, but **PROBE AGAIN is not treated as a separate pipeline stage**.
 
 ---
 
@@ -122,8 +138,8 @@ WOTAN uses Google ADK 2.0 with specialized agents:
           candidate finding
                    │
                    ▼
-        DeterministicValidator
-         application code
+        AuditValidatorEngine
+         deterministic code
              │          │
         VALIDATED    REJECTED
              │
@@ -131,9 +147,26 @@ WOTAN uses Google ADK 2.0 with specialized agents:
       ReportSynthesizerAgent
 ```
 
-Active Audit reasoning is executed through Google ADK 2.0 using `InMemoryRunner`.
+Active Audit reasoning is orchestrated through Google ADK 2.0 using `InMemoryRunner`.
 
-`ReportSynthesizerAgent` aggregates validated findings and generates the final report. It does **not** calculate the deterministic risk score; that score is calculated by application code.
+### Component Responsibilities
+
+- **AgentAuditorOrchestrator** coordinates the Active Audit.
+- **AuditPlannerAgent** defines the audit plan and objectives.
+- **ProbeAgent** generates adaptive probes for the Target Agent.
+- **EvidenceEvaluatorAgent** proposes candidate findings from observed behavior.
+- **AuditValidatorEngine** deterministically accepts or rejects candidate findings.
+- **ReportSynthesizerAgent** aggregates validated findings and generates the final report.
+
+The `ReportSynthesizerAgent` does **not** calculate the deterministic risk score.
+
+---
+
+## Architecture Diagram
+
+![WOTAN Architecture](docs/architecture/wotan-architecture.png)
+
+The diagram reinforces the central architectural boundary: **WOTAN stays outside the Target Agent and evaluates it through the public interaction surface.**
 
 ---
 
@@ -143,21 +176,23 @@ Active Audit reasoning is executed through Google ADK 2.0 using `InMemoryRunner`
 
 WOTAN includes a controlled ApexRetail customer-service target for reproducible demonstrations.
 
+The Demo Target is a sandbox used to demonstrate WOTAN's adaptive black-box audit workflow.
+
 ### External API Target
 
 WOTAN supports external HTTPS/JSON agent endpoints.
 
 Configurable fields include:
 
-- Target Name
-- HTTPS API Endpoint
-- Bearer Token
-- Request Field
-- Session Field
-- Model
-- Response JSON Path
+- Target Name;
+- HTTPS API Endpoint;
+- Bearer Token;
+- Request Field;
+- Session Field;
+- Model;
+- Response JSON Path.
 
-This lets WOTAN send adaptive probes through a target agent's public API surface without requiring access to its internals.
+This allows WOTAN to send adaptive probes through a target agent's public API surface without requiring access to its internals.
 
 ---
 
@@ -181,15 +216,37 @@ Validation includes:
 
 Unsupported candidates are rejected.
 
+The validation boundary is:
+
 ```text
-UNTRUSTED DATA IN → VALIDATED OR REJECTED OUT
+UNTRUSTED DATA IN
+        ↓
+DETERMINISTIC VALIDATION
+        ↓
+VALIDATED OR REJECTED OUT
 ```
+
+This separation reduces the risk of the auditor itself introducing unsupported findings.
+
+---
+
+## Deterministic High-Confidence Detection
+
+WOTAN also includes deterministic detectors for strong observable signals, including:
+
+- prompt-injection / boundary-escape indicators;
+- unauthorized refund or VIP-exception commitments;
+- direct bank-wire commitments;
+- banking-data solicitation;
+- explicit context-recall failures.
+
+These checks are application-controlled and do not rely solely on LLM judgment.
 
 ---
 
 ## Deterministic Risk Score
 
-Risk scoring is application-controlled:
+Risk scoring is controlled by application code:
 
 ```text
 LOW      = 3
@@ -214,7 +271,7 @@ Risk tiers:
 
 If any validated finding is `CRITICAL`, the final risk tier cannot fall below `HIGH`.
 
-The LLM does not determine the final score.
+The LLM does **not** determine the final risk score.
 
 ---
 
@@ -274,14 +331,16 @@ Deterministic Validation
  ↓
 Executive Risk Report
  ↓
-Optional persistence to Firestore
+Firestore (when persistence is used)
 ```
 
 ---
 
 ## Firestore Persistence
 
-Completed audit reports can be persisted in Firestore.
+Firestore is a confirmed part of the WOTAN stack.
+
+Completed audit reports **can be persisted in Firestore** when persistence is used for an audit execution.
 
 The deployed Cloud Run service has been validated for:
 
@@ -290,19 +349,49 @@ Cloud Run → Firestore WRITE
 Cloud Run → Firestore READ
 ```
 
+Stored audit records can include:
+
+- transcript;
+- validated findings;
+- deterministic risk score;
+- risk level;
+- dimension scores;
+- recommendations;
+- model metadata;
+- audit metadata.
+
 ---
 
 ## Security Boundary
 
 WOTAN's black-box claim applies specifically to the **Target Agent**.
 
-WOTAN may maintain its own audit state, logs, reports, Firestore records, and runtime metadata, but it does not require Target-side internal visibility.
+WOTAN may maintain its own:
+
+- audit state;
+- logs;
+- reports;
+- Firestore records;
+- runtime metadata.
+
+But it does not require Target-side internal visibility.
+
+No claim of Target-side access is implied by WOTAN's own runtime data.
 
 ---
 
 ## Real-World Black-Box Validation
 
 The methodology behind WOTAN evolved from prior real-world black-box audits of customer-facing AI agents.
+
+These cases helped refine:
+
+- adaptive probing;
+- evidence capture;
+- contradiction detection;
+- epistemic-honesty checks;
+- commercial-risk analysis;
+- behavioral severity classification.
 
 See:
 
@@ -318,31 +407,10 @@ docs/technical-evidence/
 
 ---
 
-## Known Limitations
-
-- External Target mode currently supports HTTPS/JSON APIs.
-- Direct browser-chat automation is not implemented in this version.
-- Direct WhatsApp connectivity is not implemented; Passive Audit supports exported WhatsApp TXT files.
-- The included Demo Target is a controlled sandbox for reproducible testing.
-
----
-
-## Responsible Use
-
-WOTAN is intended for authorized behavioral evaluation of AI agents. Only test systems that you own or are authorized to evaluate.
-
----
-
-## Core Thesis
-
-> **Internal observability tells you what happened inside an agent.  
-> WOTAN tells you what an external user can actually make that agent do.**
-
----
-
 ## Reproducible Testing Instructions
 
 1. Open the hosted WOTAN application:
+
    https://agent-auditor-140893504278.us-east1.run.app
 
 2. Select **Black-Box Active Audit**.
@@ -355,10 +423,38 @@ WOTAN is intended for authorized behavioral evaluation of AI agents. Only test s
 
 6. WOTAN will autonomously execute:
 
+   ```text
    PLAN → PROBE → OBSERVE → EVALUATE → ADAPT → VALIDATE → REPORT
+   ```
 
 7. Review the validated findings and deterministic risk score in the final report.
 
 The Demo Target is a controlled sandbox designed for reproducible behavioral testing.
 
 WOTAN requires no Target-side system prompt, source code, logs, traces, telemetry, database access, tools, or instrumentation.
+
+---
+
+## Known Limitations
+
+- The current external Target connector supports **HTTPS/JSON APIs**.
+- Direct browser-chat automation is **not implemented** in this version.
+- Direct WhatsApp connection is **not implemented** in this version.
+- Passive analysis supports **exported WhatsApp TXT files**.
+- The included Demo Target is a controlled sandbox for reproducible testing.
+- External API behavior depends on the authentication, request schema, and response schema exposed by the Target service.
+
+---
+
+## Responsible Use
+
+WOTAN is intended for authorized behavioral evaluation of AI agents, including customer-service agents, sales agents, support agents, enterprise assistants, transactional agents, and public AI interfaces.
+
+Only test systems that you own or are authorized to evaluate.
+
+---
+
+## Core Thesis
+
+> **Internal observability tells you what happened inside an agent.  
+> WOTAN tells you what an external user can actually make that agent do.**
