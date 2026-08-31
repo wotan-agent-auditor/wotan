@@ -16,7 +16,6 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { AuditReport } from '../types';
-import { getRiskScoreColor } from '../utils/auditHelpers';
 
 interface AuditHistoryDrawerProps {
   isOpen: boolean;
@@ -42,12 +41,20 @@ export const AuditHistoryDrawer: React.FC<AuditHistoryDrawerProps> = ({
   if (!isOpen) return null;
 
   const filteredHistory = history.filter((item) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
+    if (!item) return false;
+
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+
+    const title = typeof item.title === 'string' ? item.title : '';
+    const riskLevel = typeof item.riskLevel === 'string' ? item.riskLevel : '';
+    const executiveSummary =
+      typeof item.executiveSummary === 'string' ? item.executiveSummary : '';
+
     return (
-      item.title.toLowerCase().includes(q) ||
-      item.riskLevel.toLowerCase().includes(q) ||
-      item.executiveSummary.toLowerCase().includes(q)
+      title.toLowerCase().includes(q) ||
+      riskLevel.toLowerCase().includes(q) ||
+      executiveSummary.toLowerCase().includes(q)
     );
   });
 
@@ -112,14 +119,30 @@ export const AuditHistoryDrawer: React.FC<AuditHistoryDrawerProps> = ({
             </div>
           ) : (
             filteredHistory.map((item) => {
-              const colorInfo = getRiskScoreColor(item.overallRiskScore);
+              const riskScore = Number.isFinite(Number(item.overallRiskScore))
+                ? Number(item.overallRiskScore)
+                : 0;
+
+              const findings = Array.isArray(item.findings) ? item.findings : [];
+              const criticalCount = Number(item.severityCounts?.critical ?? 0);
+
+              const title =
+                typeof item.title === 'string' && item.title.trim()
+                  ? item.title
+                  : 'Untitled audit';
+
+              const created = item.createdAt ? new Date(item.createdAt) : null;
+              const dateStr =
+                created && !Number.isNaN(created.getTime())
+                  ? created.toLocaleString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'Unknown date';
+
               const isActive = item.id === activeAuditId;
-              const dateStr = new Date(item.createdAt).toLocaleString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              });
 
               return (
                 <div
@@ -137,7 +160,7 @@ export const AuditHistoryDrawer: React.FC<AuditHistoryDrawerProps> = ({
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="min-w-0 flex-1">
                       <h4 className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">
-                        {item.title}
+                        {title}
                       </h4>
                       <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
                         <Calendar className="w-3 h-3 text-slate-500" />
@@ -148,16 +171,16 @@ export const AuditHistoryDrawer: React.FC<AuditHistoryDrawerProps> = ({
                     {/* Risk Score Pill */}
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold border shrink-0 ${
-                        item.overallRiskScore >= 75
+                        riskScore >= 75
                           ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                          : item.overallRiskScore >= 50
+                          : riskScore >= 50
                           ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                          : item.overallRiskScore >= 25
+                          : riskScore >= 25
                           ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
                           : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                       }`}
                     >
-                      {item.overallRiskScore} Score
+                      {riskScore} Score
                     </span>
                   </div>
 
@@ -165,11 +188,11 @@ export const AuditHistoryDrawer: React.FC<AuditHistoryDrawerProps> = ({
                   <div className="flex items-center justify-between text-xs text-slate-400 mt-3 pt-2.5 border-t border-slate-800/80">
                     <div className="flex items-center gap-3">
                       <span className="font-mono text-slate-300">
-                        {item.findings.length} findings
+                        {findings.length} findings
                       </span>
-                      {item.severityCounts.critical > 0 && (
+                      {criticalCount > 0 && (
                         <span className="text-rose-400 font-bold font-mono">
-                          {item.severityCounts.critical} Critical
+                          {criticalCount} Critical
                         </span>
                       )}
                     </div>
