@@ -164,7 +164,7 @@ The `ReportSynthesizerAgent` does **not** calculate the deterministic risk score
 
 ## Architecture Diagram
 
-![WOTAN Architecture](docs/architecture/wotan-architecture.png)
+![WOTAN Architecture](ARCHI.png)
 
 The diagram reinforces the central architectural boundary: **WOTAN stays outside the Target Agent and evaluates it through the public interaction surface.**
 
@@ -455,6 +455,5 @@ Only test systems that you own or are authorized to evaluate.
 ---
 
 ## Core Thesis
-![WOTAN Architecture](wotan-architecture.png)
 > **Internal observability tells you what happened inside an agent.  
 > WOTAN tells you what an external user can actually make that agent do.**
